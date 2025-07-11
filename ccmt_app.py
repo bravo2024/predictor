@@ -217,31 +217,70 @@ def normalize_round(r):
 # ----------------------
 # Tab 1: Upload
 # ----------------------
+# ----------------------
+# Tab 1: Upload or Auto-Load Data
+# ----------------------
 with tab1:
-    st.header("Upload 2021–2025 CSVs")
-    uploaded_files = st.file_uploader("Upload 5 CSVs (one for each year)", type="csv", accept_multiple_files=True)
+    st.header("📁 Load Data (Auto or Manual)")
 
-    if uploaded_files:
-        for file in uploaded_files:
-            year = int(file.name.split('.')[0])
-            df = pd.read_csv(file, encoding='ISO-8859-1')
-            df.columns = [c.strip().replace("ï»¿", "") for c in df.columns]
+    @st.cache_data
+    def load_csvs_from_root():
+        expected_years = [2021, 2022, 2023, 2024, 2025]
+        loaded_data = pd.DataFrame()
+        loaded_years = []
 
-            col_map = {
-                "Rounds": "Round",
-                "College Name": "Institute",
-                "MTECH Course Name": "PG Program",
-                "S.No": "Sr.No"
-            }
-            df.rename(columns=col_map, inplace=True)
+        for year in expected_years:
+            filename = f"{year}.csv"
+            if os.path.exists(filename):
+                df = pd.read_csv(filename, encoding='ISO-8859-1')
+                df.columns = [c.strip().replace("ï»¿", "") for c in df.columns]
 
-            df["Year"] = year
-            df["Round"] = df["Round"].apply(normalize_round)  # 🟢 Normalize rounds here
+                # 🛠 Fix for varying column names
+                col_map = {
+                    "Rounds": "Round",
+                    "S.No": "Sr.No",
+                    "College Name": "Institute",
+                    "MTECH Course Name": "PG Program"
+                }
+                df.rename(columns=col_map, inplace=True)
 
-            all_data = pd.concat([all_data, df], ignore_index=True)
+                df["Year"] = year
+                df["Round"] = df["Round"].apply(normalize_round)
+                loaded_data = pd.concat([loaded_data, df], ignore_index=True)
+                loaded_years.append(year)
 
-        st.success("✅ Data loaded and combined.")
+        return loaded_data, loaded_years
+
+    all_data, loaded_years = load_csvs_from_root()
+
+    if loaded_years:
+        st.success(f"✅ Auto-loaded data from: {', '.join(map(str, loaded_years))}")
         st.dataframe(all_data.head())
+    else:
+        st.warning("⚠️ No files (2021.csv–2025.csv) found in project folder. Upload them manually:")
+
+        uploaded_files = st.file_uploader("📤 Upload CSVs (2021–2025)", type="csv", accept_multiple_files=True)
+
+        if uploaded_files:
+            for file in uploaded_files:
+                year = int(file.name.split('.')[0])
+                df = pd.read_csv(file, encoding='ISO-8859-1')
+                df.columns = [c.strip().replace("ï»¿", "") for c in df.columns]
+
+                col_map = {
+                    "Rounds": "Round",
+                    "S.No": "Sr.No",
+                    "College Name": "Institute",
+                    "MTECH Course Name": "PG Program"
+                }
+                df.rename(columns=col_map, inplace=True)
+
+                df["Year"] = year
+                df["Round"] = df["Round"].apply(normalize_round)
+                all_data = pd.concat([all_data, df], ignore_index=True)
+
+            st.success("✅ Uploaded files loaded successfully.")
+            st.dataframe(all_data.head())
 
 # ----------------------
 # Tab 2: Explore
