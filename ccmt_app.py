@@ -515,3 +515,38 @@ with tab7:
                 st.download_button("📥 Download CSV", final.to_csv(index=False), file_name=f"{selected_college}_2025_predictions.csv")
         else:
             st.warning("⚠️ No R1–R3 data found for this college in 2025. Please upload that first.")
+
+with tab8:
+    st.header("📊 Multi-College & Branch Cutoff Comparison")
+
+    if not all_data.empty:
+        years = sorted(all_data["Year"].unique())
+        institutes = sorted(all_data["Institute"].unique())
+        selected_insts = st.multiselect("Select Institutes", institutes)
+
+        # Filter PG Programs based on selected institutes
+        if selected_insts:
+            branches = sorted(all_data[all_data["Institute"].isin(selected_insts)]["PG Program"].unique())
+            selected_branches = st.multiselect("Select PG Programs", branches)
+        else:
+            selected_branches = []
+
+        category = st.selectbox("Select Category", sorted(all_data["Category"].unique()))
+        score_type = st.radio("Score Type", ["Min GATE Score", "Max GATE Score"])
+
+        if selected_insts and selected_branches:
+            df = all_data[
+                (all_data["Institute"].isin(selected_insts)) &
+                (all_data["PG Program"].isin(selected_branches)) &
+                (all_data["Category"] == category)
+            ]
+
+            agg_df = df.groupby(["Year", "Institute", "PG Program"])[score_type].mean().reset_index()
+
+            fig, ax = plt.subplots(figsize=(12, 6))
+            sns.lineplot(data=agg_df, x="Year", y=score_type, hue="PG Program", style="Institute", marker="o", ax=ax)
+            ax.set_title(f"{score_type} Trend for Selected Colleges & Programs ({category})")
+            ax.grid(True)
+            st.pyplot(fig)
+        else:
+            st.info("Please select at least one institute and one branch to view the chart.")
