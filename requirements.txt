@@ -1,0 +1,13 @@
+
+streamlit
+pandas
+prophet
+matplotlib
+streamlit
+click
+yfinance
+pandas
+prophet
+matplotlib
+plotly
+ta-lib-bin
