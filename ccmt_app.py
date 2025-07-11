@@ -194,15 +194,15 @@ st.set_page_config(layout="wide", page_title="CCMT M.Tech Cutoff Predictor")
 
 st.title("🎓 CCMT M.Tech Cutoff Analysis & Prediction (2021–2025)")
 
-tab1, tab2, tab3, tab4, tab5, tab6,tab7 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6,tab7,tab8 = st.tabs([
     "📁 Upload Data",
     "🔍 Explore Data",
     "📈 Trends",
     "📉 Round Comparison",
     "🏛️ 5-Year College View",
     "🤖 Predict 2025 SR1–NSR",
-    "🤖 Predict 2025 SR1–NSR (college wise)"
-
+    "🤖 Predict 2025 SR1–NSR (college wise)",
+    "📊 Compare Colleges & Branches"
 ])
 
 # Global holder for all data
