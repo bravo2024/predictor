@@ -520,33 +520,41 @@ with tab8:
     st.header("📊 Multi-College & Branch Cutoff Comparison")
 
     if not all_data.empty:
-        years = sorted(all_data["Year"].unique())
-        institutes = sorted(all_data["Institute"].unique())
-        selected_insts = st.multiselect("Select Institutes", institutes)
-
-        # Filter PG Programs based on selected institutes
-        if selected_insts:
-            branches = sorted(all_data[all_data["Institute"].isin(selected_insts)]["PG Program"].unique())
-            selected_branches = st.multiselect("Select PG Programs", branches)
-        else:
-            selected_branches = []
-
         category = st.selectbox("Select Category", sorted(all_data["Category"].unique()))
         score_type = st.radio("Score Type", ["Min GATE Score", "Max GATE Score"])
 
-        if selected_insts and selected_branches:
+        institutes = sorted(all_data["Institute"].unique())
+        selected_insts = st.multiselect("Select Institutes", institutes)
+
+        # 🔧 Only show PG programs if institutes are selected
+        if selected_insts:
+            df_filtered = all_data[all_data["Institute"].isin(selected_insts)]
+            programs = sorted(df_filtered["PG Program"].unique())
+            selected_programs = st.multiselect("Select PG Programs", programs)
+        else:
+            selected_programs = []
+
+        if selected_insts and selected_programs:
             df = all_data[
                 (all_data["Institute"].isin(selected_insts)) &
-                (all_data["PG Program"].isin(selected_branches)) &
+                (all_data["PG Program"].isin(selected_programs)) &
                 (all_data["Category"] == category)
             ]
 
-            agg_df = df.groupby(["Year", "Institute", "PG Program"])[score_type].mean().reset_index()
+            if df.empty:
+                st.warning("No data found for selected filters.")
+            else:
+                agg_df = df.groupby(["Year", "Institute", "PG Program"])[score_type].mean().reset_index()
 
-            fig, ax = plt.subplots(figsize=(12, 6))
-            sns.lineplot(data=agg_df, x="Year", y=score_type, hue="PG Program", style="Institute", marker="o", ax=ax)
-            ax.set_title(f"{score_type} Trend for Selected Colleges & Programs ({category})")
-            ax.grid(True)
-            st.pyplot(fig)
+                fig, ax = plt.subplots(figsize=(12, 6))
+                sns.lineplot(
+                    data=agg_df,
+                    x="Year", y=score_type,
+                    hue="PG Program", style="Institute",
+                    marker="o", ax=ax
+                )
+                ax.set_title(f"{score_type} Trend ({category}) for Selected Programs & Colleges")
+                ax.grid(True)
+                st.pyplot(fig)
         else:
-            st.info("Please select at least one institute and one branch to view the chart.")
+            st.info("Please select at least one institute and one PG program to generate the plot.")
