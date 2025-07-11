@@ -9,4 +9,4 @@ pandas
 prophet
 matplotlib
 plotly
-ta-lib-bin
+seaborn
