@@ -1,12 +1,6 @@
 streamlit
 pandas
-prophet
+numpy
 matplotlib
-streamlit
-click
-yfinance
-pandas
-prophet
-matplotlib
-plotly
 seaborn
+scikit-learn
